@@ -1,6 +1,6 @@
 /*!
  LTC2992: Dual Wide Range Power Monitor
-
+ ADAPTED FROM THAT FILE TO MPPT_DEV OBJECT
 @verbatim
 
 The LTC®2992 is a rail-to-rail system monitor that measures
@@ -125,216 +125,374 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /*! @file
     @ingroup LTC2992
     Header for LTC2992: Dual Wide Range Power Monitor
-
-#include <Arduino.h>
-#include <stdint.h>
-#include "Linduino.h"
-#include "LT_I2C.h"
-#include "LTC2992.h"
-#include <Wire.h>
+    EDITED BY KEITH MCBRIDE FOR MPPT USE
 */
 
 /***************************/
 ////FOR I2C comms on TM4C///
-#include "LTC2992.h"
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <inc/hw_i2c.h>
-#include <inc/hw_memmap.h>
-#include <inc/hw_types.h>
-#include <inc/hw_gpio.h>
-#include <driverlib/i2c.h>
-#include <driverlib/sysctl.h>
-#include <driverlib/gpio.h>
-#include <driverlib/pin_map.h>
+#include "MPPT_dev.h"
+#include "Wire.h"
 
-//initialize I2C module 0
-//Slightly modified version of TI's example code
-void InitI2C0(void)
-{
-    //enable I2C module 0
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
- 
-    //reset module
-    SysCtlPeripheralReset(SYSCTL_PERIPH_I2C0);
-     
-    //enable GPIO peripheral that contains I2C 0
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
- 
-    // Configure the pin muxing for I2C0 functions on port B2 and B3.
-    GPIOPinConfigure(GPIO_PB2_I2C0SCL);
-    GPIOPinConfigure(GPIO_PB3_I2C0SDA);
-     
-    // Select the I2C function for these pins.
-    GPIOPinTypeI2CSCL(GPIO_PORTB_BASE, GPIO_PIN_2);
-    GPIOPinTypeI2C(GPIO_PORTB_BASE, GPIO_PIN_3);
- 
-    // Enable and initialize the I2C0 master module.  Use the system clock for
-    // the I2C0 module.  The last parameter sets the I2C data transfer rate.
-    // If false the data rate is set to 100kbps and if true the data rate will
-    // be set to 400kbps.
-    I2CMasterInitExpClk(I2C0_BASE, SysCtlClockGet(), false);
-     
-    //clear I2C FIFOs
-    HWREG(I2C0_BASE + I2C_O_FIFOCTL) = 80008000;
+// Initiate class object
+MPPT::MPPT(TwoWire& w_){
+        wire_=&w_;
 }
 
-//sends an I2C command to the specified slave
-void I2CSend(uint8_t slave_addr, uint8_t num_of_args, ...)
-{
-    // Tell the master module what address it will place on the bus when
-    // communicating with the slave.
-    I2CMasterSlaveAddrSet(I2C0_BASE, slave_addr, false);
-     
-    //stores list of variable number of arguments
-    va_list vargs;
-     
-    //specifies the va_list to "open" and the last fixed argument
-    //so vargs knows where to start looking
-    va_start(vargs, num_of_args);
-     
-    //put data to be sent into FIFO
-    I2CMasterDataPut(I2C0_BASE, va_arg(vargs, uint32_t));
-     
-    //if there is only one argument, we only need to use the
-    //single send I2C function
-    if(num_of_args == 1)
-    {
-        //Initiate send of data from the MCU
-        I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_SINGLE_SEND);
-         
-        // Wait until MCU is done transferring.
-        while(I2CMasterBusy(I2C0_BASE));
-         
-        //"close" variable argument list
-        va_end(vargs);
-    }
-     
-    //otherwise, we start transmission of multiple bytes on the
-    //I2C bus
-    else
-    {
-        //Initiate send of data from the MCU
-        I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_START);
-         
-        // Wait until MCU is done transferring.
-        while(I2CMasterBusy(I2C0_BASE));
-         
-        //send num_of_args-2 pieces of data, using the
-        //BURST_SEND_CONT command of the I2C module
-        for(uint8_t i = 1; i < (num_of_args - 1); i++)
-        {
-            //put next piece of data into I2C FIFO
-            I2CMasterDataPut(I2C0_BASE, va_arg(vargs, uint32_t));
-            //send next data that was just placed into FIFO
-            I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_CONT);
-     
-            // Wait until MCU is done transferring.
-            while(I2CMasterBusy(I2C0_BASE));
+void MPPT::begin(uint8_t mAddress){
+	wire_->beginTransmission(mAddress);
+}
+
+void MPPT::end(){
+	wire_->endTransmission();
+}
+
+uint8_t MPPT::readByte(uint8_t mAddress){
+	wire_->requestFrom(mAddress,(uint8_t)1);
+	return wire_->read();
+}
+
+// write 2 bytes, first is CTRLA_REG and second is LTC2992_mode
+void MPPT::Setup(uint8_t mAddress){
+        uint8_t LTC2992_mode=0;
+        begin(mAddress);
+        wire_->write(LTC2992_CTRLA_REG);
+        wire_->write(LTC2992_mode);
+        end();
+}
+
+
+void MPPT::ReadPower1(uint8_t mAddress, uint8_t read_buffer[3]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_POWER1_MSB2_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)3);
+        int i=0;
+        while(wire_->available() && i<3){
+          read_buffer[i]=wire_->read();
+          i++;
         }
-     
-        //put last piece of data into I2C FIFO
-        I2CMasterDataPut(I2C0_BASE, va_arg(vargs, uint32_t));
-        //send next data that was just placed into FIFO
-        I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_FINISH);
-        // Wait until MCU is done transferring.
-        while(I2CMasterBusy(I2C0_BASE));
-         
-        //"close" variable args list
-        va_end(vargs);
-    }
 }
 
-//sends an array of data via I2C to the specified slave
-void I2CSendString(uint8_t slave_addr, char array[])
-{
-    // Tell the master module what address it will place on the bus when
-    // communicating with the slave.
-    I2CMasterSlaveAddrSet(I2C0_BASE, slave_addr, false);
-     
-    //put data to be sent into FIFO
-    I2CMasterDataPut(I2C0_BASE, array[0]);
-     
-    //if there is only one argument, we only need to use the
-    //single send I2C function
-    if(array[1] == '\0')
-    {
-        //Initiate send of data from the MCU
-        I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_SINGLE_SEND);
-         
-        // Wait until MCU is done transferring.
-        while(I2CMasterBusy(I2C0_BASE));
-    }
-     
-    //otherwise, we start transmission of multiple bytes on the
-    //I2C bus
-    else
-    {
-        //Initiate send of data from the MCU
-        I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_START);
-         
-        // Wait until MCU is done transferring.
-        while(I2CMasterBusy(I2C0_BASE));
-         
-        //initialize index into array
-        uint8_t i = 1;
- 
-        //send num_of_args-2 pieces of data, using the
-        //BURST_SEND_CONT command of the I2C module
-        while(array[i + 1] != '\0')
-        {
-            //put next piece of data into I2C FIFO
-            I2CMasterDataPut(I2C0_BASE, array[i++]);
- 
-            //send next data that was just placed into FIFO
-            I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_CONT);
-     
-            // Wait until MCU is done transferring.
-            while(I2CMasterBusy(I2C0_BASE));
+void MPPT::ReadPower1Max(uint8_t mAddress, uint8_t read_buffer[3]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MAX_POWER1_MSB2_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)3);
+        int i=0;
+        while(wire_->available() && i<3){
+          read_buffer[i]=wire_->read();
+          i++;
         }
-     
-        //put last piece of data into I2C FIFO
-        I2CMasterDataPut(I2C0_BASE, array[i]);
- 
-        //send next data that was just placed into FIFO
-        I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_FINISH);
- 
-        // Wait until MCU is done transferring.
-        while(I2CMasterBusy(I2C0_BASE));
-    }
 }
 
-//read specified register on slave device
-uint32_t I2CReceive(uint8_t slave_addr, uint8_t reg)
-{
-    //specify that we are writing (a register address) to the
-    //slave device
-    I2CMasterSlaveAddrSet(I2C0_BASE, slave_addr, false);
- 
-    //specify register to be read
-    I2CMasterDataPut(I2C0_BASE, reg);
- 
-    //send control byte and register address byte to slave device
-    I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_SEND_START);
-     
-    //wait for MCU to finish transaction
-    while(I2CMasterBusy(I2C0_BASE));
-     
-    //specify that we are going to read from slave device
-    I2CMasterSlaveAddrSet(I2C0_BASE, slave_addr, true);
-     
-    //send control byte and read from the register we
-    //specified
-    I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_SINGLE_RECEIVE);
-     
-    //wait for MCU to finish transaction
-    while(I2CMasterBusy(I2C0_BASE));
-     
-    //return data pulled from the specified register
-    return I2CMasterDataGet(I2C0_BASE);
+void MPPT::ReadPower1Min(uint8_t mAddress, uint8_t read_buffer[3]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MIN_POWER1_MSB2_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)3);
+        int i=0;
+        while(wire_->available() && i<3){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
 }
-// END TM4C I2C comms
+
+void MPPT::ReadPower2(uint8_t mAddress, uint8_t read_buffer[3]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_POWER2_MSB2_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)3);
+        int i=0;
+        while(wire_->available() && i<3){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadPower2Max(uint8_t mAddress, uint8_t read_buffer[3]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MAX_POWER2_MSB2_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)3);
+        int i=0;
+        while(wire_->available() && i<3){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadPower2Min(uint8_t mAddress, uint8_t read_buffer[3]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MIN_POWER2_MSB2_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)3);
+        int i=0;
+        while(wire_->available() && i<3){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadSense1(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_SENSE1_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadSense1Max(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write( LTC2992_MAX_SENSE1_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadSense1Min(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MIN_SENSE1_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadSense2(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_SENSE2_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadSense2Max(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write( LTC2992_MAX_SENSE2_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadSense2Min(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MIN_SENSE2_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+
+void MPPT::ReadCurrent1(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_DELTA_SENSE1_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+
+void MPPT::ReadCurrent1Max(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MAX_DELTA1_SENSE_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadCurrent1Min(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MIN_DELTA1_SENSE_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadCurrent2(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_DELTA_SENSE2_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+
+void MPPT::ReadCurrent2Max(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MAX_DELTA2_SENSE_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadCurrent2Min(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MIN_DELTA2_SENSE_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+
+void MPPT::ReadGPIO(int gpio, uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        switch(gpio){
+          case 2: {
+            wire_->write(LTC2992_GPIO2_MSB_REG);
+            break;
+          }
+          case 3: {
+            wire_->write(LTC2992_GPIO3_MSB_REG);
+            break;
+          }
+          case 4: {
+            wire_->write(LTC2992_GPIO4_MSB_REG);
+            break;
+          }
+          default: {
+            wire_->write(LTC2992_GPIO1_MSB_REG);
+            break;
+          }
+        }
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+
+void MPPT::ReadGPIOMax(int gpio, uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        switch(gpio){
+          case 2: {
+            wire_->write(LTC2992_MAX_GPIO2_MSB_REG);
+            break;
+          }
+          case 3: {
+            wire_->write(LTC2992_MAX_GPIO3_MSB_REG);
+            break;
+          }
+          case 4: {
+            wire_->write(LTC2992_MAX_GPIO4_MSB_REG);
+            break;
+          }
+          default: {
+            wire_->write(LTC2992_MAX_GPIO1_MSB_REG);
+            break;
+          }
+        }
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+
+void MPPT::ReadGPIOMin(int gpio, uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        switch(gpio){
+          case 2: {
+            wire_->write(LTC2992_MIN_GPIO2_MSB_REG);
+            break;
+          }
+          case 3: {
+            wire_->write(LTC2992_MIN_GPIO3_MSB_REG);
+            break;
+          }
+          case 4: {
+            wire_->write(LTC2992_MIN_GPIO4_MSB_REG);
+            break;
+          }
+          default: {
+            wire_->write(LTC2992_MIN_GPIO1_MSB_REG);
+            break;
+          }
+        }
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+
+
 /***************************************************/ 
 // START LT_I2C comms
 /**************************************************

@@ -24,10 +24,15 @@ typedef enum SolarHSK_cmd {
   // 2-248 are board-specific: these are test commands
 	eIntSensorRead = 0x02,
         ePacketCount = 0x03,
-        eVoltageCurrentInput = 0x04,
-        eVoltageCurrentOutput = 0x05,
-        ePanelTemp = 0x06,
-        eBoardTemp = 0x07,
-        eInductorTemp = 0x08,
+        ePower1 = 0x04,
+        ePower2 = 0x05,
+        eSense1 = 0x06,
+        eSense2 = 0x07,
+        eCurrent1 = 0x08,
+        eCurrent2 = 0x09,
+        eGPIO1 = 0x0A,  //10
+        eGPIO2 = 0x0B,  //11
+        eGPIO3 = 0x0C,  //12
+        eGPIO4 = 0x0D,  //13
         eISR=0xA0,
 } SolarHSK_cmd;

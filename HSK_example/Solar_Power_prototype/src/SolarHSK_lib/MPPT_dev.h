@@ -503,13 +503,50 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define GPIO_PB3_I2C0SDA        0x00010C03
 
 
-void InitI2C0(void);
+class MPPT
+{
+public:
+    // object
+    MPPT(TwoWire& w_);
+    // functions
+    // setup the chip
+    void Setup(uint8_t mAddress);
+    // power1 on any address chip
+    void ReadPower1(uint8_t mAddress, uint8_t read_buffer[3]);
+    void ReadPower1Max(uint8_t mAddress, uint8_t read_buffer[3]);
+    void ReadPower1Min(uint8_t mAddress, uint8_t read_buffer[3]);
+    // power2 on any address chip
+    void ReadPower2(uint8_t mAddress, uint8_t read_buffer[3]);
+    void ReadPower2Max(uint8_t mAddress, uint8_t read_buffer[3]);
+    void ReadPower2Min(uint8_t mAddress, uint8_t read_buffer[3]);
+    // Sense1 on any address chip
+    void ReadSense1(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadSense1Max(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadSense1Min(uint8_t mAddress, uint8_t read_buffer[2]);
+    // Sense2 on any address chip
+    void ReadSense2(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadSense2Max(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadSense2Min(uint8_t mAddress, uint8_t read_buffer[2]);
+    // Current1 on any address chip
+    void ReadCurrent1(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadCurrent1Max(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadCurrent1Min(uint8_t mAddress, uint8_t read_buffer[2]);
+    // Current2 on any address chip
+    void ReadCurrent2(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadCurrent2Max(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadCurrent2Min(uint8_t mAddress, uint8_t read_buffer[2]);
+    // GPIO(gpio) on any address chip
+    void ReadGPIO(int gpio, uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadGPIOMax(int gpio, uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadGPIOMin(int gpio, uint8_t mAddress, uint8_t read_buffer[2]);
 
-void I2CSend(uint8_t slave_addr, uint8_t num_of_args, ...);
-
-void I2CSendString(uint8_t slave_addr, char array[]);
-
-uint32_t I2CReceive(uint8_t slave_addr, uint8_t reg);
+private:
+    // constants and types and private functions like begin()
+    TwoWire* wire_;
+    void begin(uint8_t mAddress);
+    void end();
+    uint8_t readByte(uint8_t mAddress);
+};
 
 // END TM4C I2C comms
 /***************************************************/ 

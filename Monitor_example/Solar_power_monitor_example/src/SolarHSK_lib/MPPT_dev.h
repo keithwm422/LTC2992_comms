@@ -1,4 +1,5 @@
 /*!
+  ADAPTED FROM THE FOLLOWING
  LTC2992: Dual Wide Range Power Monitor
 
 @verbatim
@@ -123,10 +124,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     Header for LTC2992: Dual Wide Range Power Monitor
 */
 
-#ifndef LTC2992_H
-#define LTC2992_H
+// Edits from that header above to this MPPT_dev.h which is upgraded to an object class.
 
-#include <Wire.h>
+#ifndef MPPT_DEV_H
+#define MPPT_DEV_H
+
+// for I2C object, make sure its in same directory
+#include "Wire.h"
 
 
 //! Use table to select address
@@ -170,164 +174,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define LTC2992_I2C_MASS_WRITE      0x66
 #define LTC2992_I2C_ALERT_RESPONSE  0x0C
 //! @}
-
-
-/*!
-| Name                                              | Value |
-| :------------------------------------------------ | :---: |
-| LTC2992_CTRLA_REG                                 | 0x00  |
-| LTC2992_CTRLB_REG                                 | 0x01  |
-| LTC2992_ALERT1_REG                                | 0x02  |
-| LTC2992_FAULT1_REG                                | 0x03  |
-| LTC2992_NADC_REG                                  | 0x04  |
-| LTC2992_POWER1_MSB2_REG                           | 0x05  |
-| LTC2992_POWER1_MSB1_REG                           | 0x06  |
-| LTC2992_POWER1_LSB_REG                            | 0x07  |
-| LTC2992_MAX_POWER1_MSB2_REG                       | 0x08  |
-| LTC2992_MAX_POWER1_MSB1_REG                       | 0x09  |
-| LTC2992_MAX_POWER1_LSB_REG                        | 0x0A  |
-| LTC2992_MIN_POWER1_MSB2_REG                       | 0x0B  |
-| LTC2992_MIN_POWER1_MSB1_REG                       | 0x0C  |
-| LTC2992_MIN_POWER1_LSB_REG                        | 0x0D  |
-| LTC2992_MAX_POWER1_THRESHOLD_MSB2_REG             | 0x0E  |
-| LTC2992_MAX_POWER1_THRESHOLD_MSB1_REG             | 0x0F  |
-| LTC2992_MAX_POWER1_THRESHOLD_LSB_REG              | 0x10  |
-| LTC2992_MIN_POWER1_THRESHOLD_MSB2_REG             | 0x11  |
-| LTC2992_MIN_POWER1_THRESHOLD_MSB1_REG             | 0x12  |
-| LTC2992_MIN_POWER1_THRESHOLD_LSB_REG              | 0x13  |
-| LTC2992_DELTA_SENSE1_MSB_REG                      | 0x14  |
-| LTC2992_DELTA_SENSE1_LSB_REG                      | 0x15  |
-| LTC2992_MAX_DELTA1_SENSE_MSB_REG                  | 0x16  |
-| LTC2992_MAX_DELTA1_SENSE_LSB_REG                  | 0x17  |
-| LTC2992_MIN_DELTA1_SENSE_MSB_REG                  | 0x18  |
-| LTC2992_MIN_DELTA1_SENSE_LSB_REG                  | 0x19  |
-| LTC2992_MAX_DELTA1_SENSE_THRESHOLD_MSB_REG        | 0x1A  |
-| LTC2992_MAX_DELTA1_SENSE_THRESHOLD_LSB_REG        | 0x1B  |
-| LTC2992_MIN_DELTA1_SENSE_THRESHOLD_MSB_REG        | 0x1C  |
-| LTC2992_MIN_DELTA1_SENSE_THRESHOLD_LSB_REG        | 0x1D  |
-| LTC2992_SENSE1_MSB_REG                            | 0x1E  |
-| LTC2992_SENSE1_LSB_REG                            | 0x1F  |
-| LTC2992_MAX_SENSE1_MSB_REG                        | 0x20  |
-| LTC2992_MAX_SENSE1_LSB_REG                        | 0x21  |
-| LTC2992_MIN_SENSE1_MSB_REG                        | 0x22  |
-| LTC2992_MIN_SENSE1_LSB_REG                        | 0x23  |
-| LTC2992_MAX_SENSE1_THRESHOLD_MSB_REG              | 0x24  |
-| LTC2992_MAX_SENSE1_THRESHOLD_LSB_REG              | 0x25  |
-| LTC2992_MIN_SENSE1_THRESHOLD_MSB_REG              | 0x26  |
-| LTC2992_MIN_SENSE1_THRESHOLD_LSB_REG              | 0x27  |
-| LTC2992_GPIO1_MSB_REG                             | 0x28  |
-| LTC2992_GPIO1_LSB_REG_REG                         | 0x29  |
-| LTC2992_MAX_GPIO1_MSB_REG                         | 0x2A  |
-| LTC2992_MAX_GPIO1_LSB_REG                         | 0x2B  |
-| LTC2992_MIN_GPIO1_MSB_REG                         | 0x2C  |
-| LTC2992_MIN_GPIO1_LSB_REG                         | 0x2D  |
-| LTC2992_MAX_GPIO1_THRESHOLD_MSB_REG               | 0x2E  |
-| LTC2992_MAX_GPIO1_THRESHOLD_LSB_REG               | 0x2F  |
-| LTC2992_MIN_GPIO1_THRESHOLD_MSB_REG               | 0x30  |
-| LTC2992_MIN_GPIO1_THRESHOLD_LSB_REG               | 0x31  |
-| LTC2992_ADC_STATUS_REG                            | 0x32  |
-| LTC2992_ALERT2_REG                                | 0x34  |
-| LTC2992_FAULT2_REG                                | 0x35  |
-| LTC2992_POWER2_MSB2_REG                           | 0x37  |
-| LTC2992_POWER2_MSB1_REG                           | 0x38  |
-| LTC2992_POWER2_LSB_REG                            | 0x39  |
-| LTC2992_MAX_POWER2_MSB2_REG                       | 0x3A  |
-| LTC2992_MAX_POWER2_MSB1_REG                       | 0x3B  |
-| LTC2992_MAX_POWER2_LSB_REG                        | 0x3C  |
-| LTC2992_MIN_POWER2_MSB2_REG                       | 0x3D  |
-| LTC2992_MIN_POWER2_MSB1_REG                       | 0x3E  |
-| LTC2992_MIN_POWER2_LSB_REG                        | 0x3F  |
-| LTC2992_MAX_POWER2_THRESHOLD_MSB2_REG             | 0x40  |
-| LTC2992_MAX_POWER2_THRESHOLD_MSB1_REG             | 0x41  |
-| LTC2992_MAX_POWER2_THRESHOLD_LSB_REG              | 0x42  |
-| LTC2992_MIN_POWER2_THRESHOLD_MSB2_REG             | 0x43  |
-| LTC2992_MIN_POWER2_THRESHOLD_MSB1_REG             | 0x44  |
-| LTC2992_MIN_POWER2_THRESHOLD_LSB_REG              | 0x45  |
-| LTC2992_DELTA_SENSE2_MSB_REG                      | 0x46  |
-| LTC2992_DELTA_SENSE2_LSB_REG                      | 0x47  |
-| LTC2992_MAX_DELTA2_SENSE_MSB_REG                  | 0x48  |
-| LTC2992_MAX_DELTA2_SENSE_LSB_REG                  | 0x49  |
-| LTC2992_MIN_DELTA2_SENSE_MSB_REG                  | 0x4A  |
-| LTC2992_MIN_DELTA2_SENSE_LSB_REG                  | 0x4B  |
-| LTC2992_MAX_DELTA2_SENSE_THRESHOLD_MSB_REG        | 0x4C  |
-| LTC2992_MAX_DELTA2_SENSE_THRESHOLD_LSB_REG        | 0x4D  |
-| LTC2992_MIN_DELTA2_SENSE_THRESHOLD_MSB_REG        | 0x4E  |
-| LTC2992_MIN_DELTA2_SENSE_THRESHOLD_LSB_REG        | 0x4F  |
-| LTC2992_SENSE2_MSB_REG                            | 0x50  |
-| LTC2992_SENSE2_LSB_REG                            | 0x51  |
-| LTC2992_MAX_SENSE2_MSB_REG                        | 0x52  |
-| LTC2992_MAX_SENSE2_LSB_REG                        | 0x53  |
-| LTC2992_MIN_SENSE2_MSB_REG                        | 0x54  |
-| LTC2992_MIN_SENSE2_LSB_REG                        | 0x55  |
-| LTC2992_MAX_SENSE2_THRESHOLD_MSB_REG              | 0x56  |
-| LTC2992_MAX_SENSE2_THRESHOLD_LSB_REG              | 0x57  |
-| LTC2992_MIN_SENSE2_THRESHOLD_MSB_REG              | 0x58  |
-| LTC2992_MIN_SENSE2_THRESHOLD_LSB_REG              | 0x59  |
-| LTC2992_GPIO2_MSB_REG                             | 0x5A  |
-| LTC2992_GPIO2_LSB_REG_REG                         | 0x5B  |
-| LTC2992_MAX_GPIO2_MSB_REG                         | 0x5C  |
-| LTC2992_MAX_GPIO2_LSB_REG                         | 0x5D  |
-| LTC2992_MIN_GPIO2_MSB_REG                         | 0x5E  |
-| LTC2992_MIN_GPIO2_LSB_REG                         | 0x5F  |
-| LTC2992_MAX_GPIO2_THRESHOLD_MSB_REG               | 0x60  |
-| LTC2992_MAX_GPIO2_THRESHOLD_LSB_REG               | 0x61  |
-| LTC2992_MIN_GPIO2_THRESHOLD_MSB_REG               | 0x62  |
-| LTC2992_MIN_GPIO2_THRESHOLD_LSB_REG               | 0x63  |
-| LTC2992_GPIO3_MSB_REG                             | 0x64  |
-| LTC2992_GPIO3_LSB_REG_REG                         | 0x65  |
-| LTC2992_MAX_GPIO3_MSB_REG                         | 0x66  |
-| LTC2992_MAX_GPIO3_LSB_REG                         | 0x67  |
-| LTC2992_MIN_GPIO3_MSB_REG                         | 0x68  |
-| LTC2992_MIN_GPIO3_LSB_REG                         | 0x69  |
-| LTC2992_MAX_GPIO3_THRESHOLD_MSB_REG               | 0x6A  |
-| LTC2992_MAX_GPIO3_THRESHOLD_LSB_REG               | 0x6B  |
-| LTC2992_MIN_GPIO3_THRESHOLD_MSB_REG               | 0x6C  |
-| LTC2992_MIN_GPIO3_THRESHOLD_LSB_REG               | 0x6D  |
-| LTC2992_GPIO4_MSB_REG                             | 0x6E  |
-| LTC2992_GPIO4_LSB_REG_REG                         | 0x6F  |
-| LTC2992_MAX_GPIO4_MSB_REG                         | 0x70  |
-| LTC2992_MAX_GPIO4_LSB_REG                         | 0x71  |
-| LTC2992_MIN_GPIO4_MSB_REG                         | 0x72  |
-| LTC2992_MIN_GPIO4_LSB_REG                         | 0x73  |
-| LTC2992_MAX_GPIO4_THRESHOLD_MSB_REG               | 0x74  |
-| LTC2992_MAX_GPIO4_THRESHOLD_LSB_REG               | 0x75  |
-| LTC2992_MIN_GPIO4_THRESHOLD_MSB_REG               | 0x76  |
-| LTC2992_MIN_GPIO4_THRESHOLD_LSB_REG               | 0x77  |
-| LTC2992_ISUM_MSB_REG                              | 0x78  |
-| LTC2992_ISUM_LSB_REG_REG                          | 0x79  |
-| LTC2992_MAX_ISUM_MSB_REG                          | 0x7A  |
-| LTC2992_MAX_ISUM_LSB_REG                          | 0x7B  |
-| LTC2992_MIN_ISUM_MSB_REG                          | 0x7C  |
-| LTC2992_MIN_ISUM_LSB_REG                          | 0x7D  |
-| LTC2992_MAX_ISUM_THRESHOLD_MSB_REG                | 0x7E  |
-| LTC2992_MAX_ISUM_THRESHOLD_LSB_REG                | 0x7F  |
-| LTC2992_MIN_ISUM_THRESHOLD_MSB_REG                | 0x80  |
-| LTC2992_MIN_ISUM_THRESHOLD_LSB_REG                | 0x81  |
-| LTC2992_PSUM_MSB1_REG                             | 0x82  |
-| LTC2992_PSUM_MSB_REG                              | 0x83  |
-| LTC2992_PSUM_LSB_REG_REG                          | 0x84  |
-| LTC2992_MAX_PSUM_MSB1_REG                         | 0x85  |
-| LTC2992_MAX_PSUM_MSB_REG                          | 0x86  |
-| LTC2992_MAX_PSUM_LSB_REG                          | 0x87  |
-| LTC2992_MIN_PSUM_MSB1_REG                         | 0x88  |
-| LTC2992_MIN_PSUM_MSB_REG                          | 0x89  |
-| LTC2992_MIN_PSUM_LSB_REG                          | 0x8A  |
-| LTC2992_MAX_PSUM_THRESHOLD_MSB1_REG               | 0x8B  |
-| LTC2992_MAX_PSUM_THRESHOLD_MSB_REG                | 0x8C  |
-| LTC2992_MAX_PSUM_THRESHOLD_LSB_REG                | 0x8D  |
-| LTC2992_MIN_PSUM_THRESHOLD_MSB1_REG               | 0x8E  |
-| LTC2992_MIN_PSUM_THRESHOLD_MSB_REG                | 0x8F  |
-| LTC2992_MIN_PSUM_THRESHOLD_LSB_REG                | 0x90  |
-| LTC2992_ALERT3_REG                                | 0x91  |
-| LTC2992_FAULT3_REG                                | 0x92  |
-| LTC2992_ALERT4_REG                                | 0x93  |
-| LTC2992_FAULT4_REG                                | 0x94  |
-| LTC2992_GPIO_STATUS_REG                           | 0x95  |
-| LTC2992_GPIO_IO_CONT_REG                          | 0x96  |
-| LTC2992_GPIO4_CFG_REG                             | 0x97  |
-  */
-
-
 
 
 /*! @name Registers
@@ -657,13 +503,50 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define GPIO_PB3_I2C0SDA        0x00010C03
 
 
-void InitI2C0(void);
+class MPPT
+{
+public:
+    // object
+    MPPT(TwoWire& w_);
+    // functions
+    // setup the chip
+    void Setup(uint8_t mAddress);
+    // power1 on any address chip
+    void ReadPower1(uint8_t mAddress, uint8_t read_buffer[3]);
+    void ReadPower1Max(uint8_t mAddress, uint8_t read_buffer[3]);
+    void ReadPower1Min(uint8_t mAddress, uint8_t read_buffer[3]);
+    // power2 on any address chip
+    void ReadPower2(uint8_t mAddress, uint8_t read_buffer[3]);
+    void ReadPower2Max(uint8_t mAddress, uint8_t read_buffer[3]);
+    void ReadPower2Min(uint8_t mAddress, uint8_t read_buffer[3]);
+    // Sense1 on any address chip
+    void ReadSense1(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadSense1Max(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadSense1Min(uint8_t mAddress, uint8_t read_buffer[2]);
+    // Sense2 on any address chip
+    void ReadSense2(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadSense2Max(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadSense2Min(uint8_t mAddress, uint8_t read_buffer[2]);
+    // Current1 on any address chip
+    void ReadCurrent1(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadCurrent1Max(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadCurrent1Min(uint8_t mAddress, uint8_t read_buffer[2]);
+    // Current2 on any address chip
+    void ReadCurrent2(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadCurrent2Max(uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadCurrent2Min(uint8_t mAddress, uint8_t read_buffer[2]);
+    // GPIO(gpio) on any address chip
+    void ReadGPIO(int gpio, uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadGPIOMax(int gpio, uint8_t mAddress, uint8_t read_buffer[2]);
+    void ReadGPIOMin(int gpio, uint8_t mAddress, uint8_t read_buffer[2]);
 
-void I2CSend(uint8_t slave_addr, uint8_t num_of_args, ...);
-
-void I2CSendString(uint8_t slave_addr, char array[]);
-
-uint32_t I2CReceive(uint8_t slave_addr, uint8_t reg);
+private:
+    // constants and types and private functions like begin()
+    TwoWire* wire_;
+    void begin(uint8_t mAddress);
+    void end();
+    uint8_t readByte(uint8_t mAddress);
+};
 
 // END TM4C I2C comms
 /***************************************************/ 
@@ -749,5 +632,5 @@ float LTC2992_code_to_power_sum(int32_t adc_code,             //!< The ADC value
                                 float LTC2992_Power_lsb);    //!< Power LSB Weight
 
 **********************************/
-#endif  // LTC2945_H
+#endif  // MPPT_DEV_H
 

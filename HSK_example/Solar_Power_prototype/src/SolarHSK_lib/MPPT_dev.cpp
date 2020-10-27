@@ -160,6 +160,7 @@ void MPPT::Setup(uint8_t mAddress){
         end();
 }
 
+
 void MPPT::ReadPower1(uint8_t mAddress, uint8_t read_buffer[3]){
         // first need to write to the LTC chip the register we will read from
         begin(mAddress);
@@ -167,69 +168,330 @@ void MPPT::ReadPower1(uint8_t mAddress, uint8_t read_buffer[3]){
         end();
         wire_->requestFrom(mAddress,(uint8_t)3);
         int i=0;
-        while(wire_>available() && i<3){
+        while(wire_->available() && i<3){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadPower1Max(uint8_t mAddress, uint8_t read_buffer[3]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MAX_POWER1_MSB2_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)3);
+        int i=0;
+        while(wire_->available() && i<3){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadPower1Min(uint8_t mAddress, uint8_t read_buffer[3]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MIN_POWER1_MSB2_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)3);
+        int i=0;
+        while(wire_->available() && i<3){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadPower2(uint8_t mAddress, uint8_t read_buffer[3]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_POWER2_MSB2_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)3);
+        int i=0;
+        while(wire_->available() && i<3){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadPower2Max(uint8_t mAddress, uint8_t read_buffer[3]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MAX_POWER2_MSB2_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)3);
+        int i=0;
+        while(wire_->available() && i<3){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadPower2Min(uint8_t mAddress, uint8_t read_buffer[3]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MIN_POWER2_MSB2_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)3);
+        int i=0;
+        while(wire_->available() && i<3){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadSense1(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_SENSE1_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadSense1Max(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write( LTC2992_MAX_SENSE1_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadSense1Min(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MIN_SENSE1_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadSense2(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_SENSE2_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadSense2Max(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write( LTC2992_MAX_SENSE2_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadSense2Min(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MIN_SENSE2_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
           read_buffer[i]=wire_->read();
           i++;
         }
 }
 
 
+void MPPT::ReadCurrent1(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_DELTA_SENSE1_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
 
-case ePower1:
-	uint32_t err; 
-	err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 3, LTC2992_POWER1_MSB2_REG, buffer);
-	err |= I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 3, LTC2992_MAX_POWER1_MSB2_REG, (buffer+4));
-	err |= I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 3, LTC2992_MIN_POWER1_MSB2_REG, (buffer+8));
-	if (!err) return 12;
-  case ePower2:
-	err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 3, LTC2992_POWER2_MSB2_REG, buffer);
-	err |= I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 3, LTC2992_MAX_POWER2_MSB2_REG, (buffer+4));
-	err |= I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 3, LTC2992_MIN_POWER2_MSB2_REG, (buffer+8));
-	*buffer =  0x0FFFFFF & *buffer;
-	if (!err) return 12;
-	
-  case eSense1:
-	err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_SENSE1_MSB_REG, buffer);
-	err |= I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MAX_SENSE1_MSB_REG, (buffer+2));
-	err |= I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MIN_SENSE1_MSB_REG, (buffer+4));
-	if (!err) return 6;
-  case eSense2:
-	err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_SENSE2_MSB_REG, buffer);
-	err |= I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MAX_SENSE2_MSB_REG, (buffer+2));
-	err |= I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MIN_SENSE2_MSB_REG, (buffer+4));
-	if (!err) return 6;
 
-  case eCurrent1:
-	err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_DELTA_SENSE1_MSB_REG, buffer);
-	err |= I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MAX_DELTA1_SENSE_MSB_REG, (buffer+2));
-	err |= I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MIN_DELTA1_SENSE_MSB_REG, (buffer+3));
-	if (!err) return 6;
-  case eCurrent2:
-	err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_GPIO1_MSB_REG, buffer);
-    err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MAX_GPIO1_MSB_REG, (buffer+2));
-    err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MIN_GPIO1_MSB_REG, (buffer+4));
-	if (!err) return 6;
-	
-  case eGPIO1:
-	err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_GPIO1_MSB_REG, buffer);
-    err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MAX_GPIO1_MSB_REG, (buffer+2));
-    err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MIN_GPIO1_MSB_REG, (buffer+4));
-	if (!err) return 6;
-  case eGPIO2:
-	err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_GPIO2_MSB_REG, buffer);
-    err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MAX_GPIO2_MSB_REG, (buffer+2));
-    err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MIN_GPIO2_MSB_REG, (buffer+4));
-	if (!err) return 6;
-  case eGPIO3:
-	err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_GPIO3_MSB_REG, buffer);
-    err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MAX_GPIO3_MSB_REG, (buffer+2));
-    err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MIN_GPIO3_MSB_REG, (buffer+4));
-	if (!err) return 6;
-  case eGPIO4:
-	err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_GPIO4_MSB_REG, buffer);
-    err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MAX_GPIO4_MSB_REG, (buffer+2));
-    err = I2CReadNbytes(port_0, LTC2992_I2C_ADDRESS, 2, LTC2992_MIN_GPIO4_MSB_REG, (buffer+4));
-	if (!err) return 6;		
+void MPPT::ReadCurrent1Max(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MAX_DELTA1_SENSE_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadCurrent1Min(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MIN_DELTA1_SENSE_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadCurrent2(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_DELTA_SENSE2_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+
+void MPPT::ReadCurrent2Max(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MAX_DELTA2_SENSE_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+void MPPT::ReadCurrent2Min(uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        wire_->write(LTC2992_MIN_DELTA2_SENSE_MSB_REG);
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+
+void MPPT::ReadGPIO(int gpio, uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        switch(gpio){
+          case 2: {
+            wire_->write(LTC2992_GPIO2_MSB_REG);
+            break;
+          }
+          case 3: {
+            wire_->write(LTC2992_GPIO3_MSB_REG);
+            break;
+          }
+          case 4: {
+            wire_->write(LTC2992_GPIO4_MSB_REG);
+            break;
+          }
+          default: {
+            wire_->write(LTC2992_GPIO1_MSB_REG);
+            break;
+          }
+        }
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+
+void MPPT::ReadGPIOMax(int gpio, uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        switch(gpio){
+          case 2: {
+            wire_->write(LTC2992_MAX_GPIO2_MSB_REG);
+            break;
+          }
+          case 3: {
+            wire_->write(LTC2992_MAX_GPIO3_MSB_REG);
+            break;
+          }
+          case 4: {
+            wire_->write(LTC2992_MAX_GPIO4_MSB_REG);
+            break;
+          }
+          default: {
+            wire_->write(LTC2992_MAX_GPIO1_MSB_REG);
+            break;
+          }
+        }
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+
+void MPPT::ReadGPIOMin(int gpio, uint8_t mAddress, uint8_t read_buffer[2]){
+        // first need to write to the LTC chip the register we will read from
+        begin(mAddress);
+        switch(gpio){
+          case 2: {
+            wire_->write(LTC2992_MIN_GPIO2_MSB_REG);
+            break;
+          }
+          case 3: {
+            wire_->write(LTC2992_MIN_GPIO3_MSB_REG);
+            break;
+          }
+          case 4: {
+            wire_->write(LTC2992_MIN_GPIO4_MSB_REG);
+            break;
+          }
+          default: {
+            wire_->write(LTC2992_MIN_GPIO1_MSB_REG);
+            break;
+          }
+        }
+        end();
+        wire_->requestFrom(mAddress,(uint8_t)2);
+        int i=0;
+        while(wire_->available() && i<2){
+          read_buffer[i]=wire_->read();
+          i++;
+        }
+}
+
+
 
 /***************************************************/ 
 // START LT_I2C comms

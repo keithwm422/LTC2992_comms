@@ -14,7 +14,8 @@
 
 
 /* These are device specific */
-#include "src/SolarHSK_lib/LTC2992.h"
+#include "src/SolarHSK_lib/Wire.h"
+#include "src/SolarHSK_lib/MPPT_dev.h"
 #include "src/SolarHSK_lib/SolarHSK_protocol.h"
 #include "src/SolarHSK_lib/SolarHSK_support_functions.h"
 #define DOWNBAUD 115200 // Baudrate to the SFC
@@ -52,6 +53,38 @@ uint8_t numSends = 0; // Used to keep track of number of priority commands execu
 int bus = 0;
 uint16_t currentPacketCount=0;
 unsigned long timelastpacket;
+// MPPT I2C stuff
+#define PANEL_UPDATE_PERIOD 1000  // period between reads/writes
+unsigned long PanelUpdateTime=0;  // for transmit recording time
+#define  WIRE_INTERFACES_COUNT 4
+unsigned long  i2c_0=0;
+unsigned long i2c_1=1;
+unsigned long  i2c_2=2;
+unsigned long i2c_3=3;
+// declare 4 two wire objs
+TwoWire *wire_0= new TwoWire(i2c_0); // i2C object for the i2c port on the launchpad
+TwoWire *wire_1= new TwoWire(i2c_1); // i2C object for the i2c port on the launchpad
+TwoWire *wire_2= new TwoWire(i2c_2); // i2C object for the i2c port on the launchpad
+TwoWire *wire_3= new TwoWire(i2c_3); // i2C object for the i2c port on the launchpad
+
+// 4 MPPT objects (to rule them all)
+MPPT mppt_0(*wire_0); // MPPT object for sending commands to the LTC2992 chips (with address per command since 9 chips are on each i2c line) 
+MPPT mppt_1(*wire_1); // MPPT object for sending commands to the LTC2992 chips (with address per command since 9 chips are on each i2c line) 
+MPPT mppt_2(*wire_2); // MPPT object for sending commands to the LTC2992 chips (with address per command since 9 chips are on each i2c line) 
+MPPT mppt_3(*wire_3); // MPPT object for sending commands to the LTC2992 chips (with address per command since 9 chips are on each i2c line) 
+uint8_t addr=0x67; // ADR0:H ADR1:L -> 0x67, see MPPT_dev.h for the entire table (or the Datasheet of LTC2992).
+uint8_t power1[4][3];
+uint8_t power2[4][3];
+uint8_t sense1[4][2];
+uint8_t sense2[4][2];
+uint8_t current1[4][2];
+uint8_t current2[4][2];
+uint8_t gpio1[4][2];
+uint8_t gpio2[4][2];
+uint8_t gpio3[4][2];
+uint8_t gpio4[4][2];
+int gpio_select=1;
+int which_read;
 /*******************************************************************************
 * Main program
 *******************************************************************************/
@@ -66,13 +99,20 @@ void setup()
   downStream1.setPacketHandler(&checkHdr);
 // Connect to I2C port of MPPT which is LTC2992 (Orthogonal Systems)
 // Using Objects
-
-  // one way is the functions in src/SolarHSK_lib/I2C.cpp ?
-  InitI2C0();
+// Start all i2c conns
+  wire_0->begin();
+  wire_1->begin();
+  wire_2->begin();
+  wire_3->begin();
   // Point to data in a way that it can be read as a header
   hdr_out = (housekeeping_hdr_t *) outgoingPacket;
   hdr_err = (housekeeping_err_t *) (outgoingPacket + hdr_size);
   currentPacketCount=0;
+  mppt_0.Setup(addr);
+  // commented out until ready for full chain
+  //Setup_all();
+  PanelUpdateTime=millis() + PANEL_UPDATE_PERIOD;
+  which_read=1;
 }
 
 /*******************************************************************************
@@ -82,6 +122,25 @@ void loop()
 {
   /* Continuously read in one byte at a time until a packet is received */
   if (downStream1.update() != 0) badPacketReceived(&downStream1);
+  // commented out until ready for full chain
+  // read the next slave addr
+  // if slave addr >112, reset to 103.
+  /*if ((long) (millis() - PanelUpdateTime) > 0){
+    PanelUpdateTime = millis() + PANEL_UPDATE_PERIOD;
+    read_mppts();
+    if(gpio_select>4) gpio_select=1;
+    which_read++;
+    if(which_read>10) {
+      which_read=1;
+      addr++;
+      if(addr>112) addr=103;
+    }
+  }
+  */
+  if ((long) (millis() - PanelUpdateTime) > 0){
+    PanelUpdateTime = millis() + PANEL_UPDATE_PERIOD;
+    read_single(103);
+  }
 }
 
 void checkHdr(const void *sender, const uint8_t *buffer, size_t len) {
@@ -168,6 +227,83 @@ void buildError(housekeeping_err_t *err, housekeeping_hdr_t *respHdr, housekeepi
 /*******************************************************************************
  * END OF Packet handling functions
  *******************************************************************************/
+void Setup_all(){
+  uint8_t def_addr=103;
+  while(def_addr<112){
+    mppt_0.Setup(def_addr);
+    mppt_1.Setup(def_addr);
+    mppt_2.Setup(def_addr);
+    mppt_3.Setup(def_addr);
+    def_addr++;
+  }
+}
+void read_single(uint8_t addr_to_read){
+  mppt_0.ReadPower1(addr_to_read,power1[0]);
+  mppt_0.ReadPower2(addr_to_read,power2[0]);
+  mppt_0.ReadSense1(addr_to_read,sense1[0]);
+  mppt_0.ReadSense2(addr_to_read,sense2[0]);
+  mppt_0.ReadCurrent1(addr_to_read,current1[0]);
+  mppt_0.ReadCurrent2(addr_to_read,current2[0]);
+  mppt_0.ReadGPIO(1,addr_to_read,gpio1[0]);
+  mppt_0.ReadGPIO(2,addr_to_read,gpio2[0]);
+  mppt_0.ReadGPIO(3,addr_to_read,gpio3[0]);
+  mppt_0.ReadGPIO(4,addr_to_read,gpio4[0]);
+}
+
+void read_mppts(){
+  switch(which_read){
+    case 1:{
+      mppt_0.ReadPower1(addr,power1[0]);
+      mppt_1.ReadPower1(addr,power1[1]);
+      mppt_2.ReadPower1(addr,power1[2]);
+      mppt_3.ReadPower1(addr,power1[3]);
+      break; 
+    }
+    case 2:{
+      mppt_0.ReadPower2(addr,power2[0]);
+      mppt_1.ReadPower2(addr,power2[1]);
+      mppt_2.ReadPower2(addr,power2[2]);
+      mppt_3.ReadPower2(addr,power2[3]);
+      break; 
+    }
+    case 3:{
+      mppt_0.ReadSense1(addr,sense1[0]);
+      mppt_1.ReadSense1(addr,sense1[1]);
+      mppt_2.ReadSense1(addr,sense1[2]);
+      mppt_3.ReadSense1(addr,sense1[3]);
+      break; 
+    }
+    case 4:{
+      mppt_0.ReadSense2(addr,sense2[0]);
+      mppt_1.ReadSense2(addr,sense2[1]);
+      mppt_2.ReadSense2(addr,sense2[2]);
+      mppt_3.ReadSense2(addr,sense2[3]);
+      break; 
+    }
+    case 5:{
+      mppt_0.ReadCurrent1(addr,current1[0]);
+      mppt_1.ReadCurrent1(addr,current1[1]);
+      mppt_2.ReadCurrent1(addr,current1[2]);
+      mppt_3.ReadCurrent1(addr,current1[3]);
+      break; 
+    }
+    case 6:{
+      mppt_0.ReadCurrent2(addr,current2[0]);
+      mppt_1.ReadCurrent2(addr,current2[1]);
+      mppt_2.ReadCurrent2(addr,current2[2]);
+      mppt_3.ReadCurrent2(addr,current2[3]);
+      break; 
+    }
+    default:{
+      mppt_0.ReadGPIO(gpio_select,addr,gpio1[0]);
+      mppt_1.ReadGPIO(gpio_select,addr,gpio1[1]);
+      mppt_2.ReadGPIO(gpio_select,addr,gpio1[2]);
+      mppt_3.ReadGPIO(gpio_select,addr,gpio1[3]);
+      gpio_select++;
+      break; 
+    }
+  }
+}
 // function for when a "SetPriority" command is received by this device, adding that commands priority value to the array/list
 void setCommandPriority(housekeeping_prio_t * prio, uint8_t * respData, uint8_t len) {
 //  housekeeping_prio_t * set_prio = (housekeeping_prio_t *) prio;
@@ -242,17 +378,61 @@ int handleLocalRead(uint8_t localCommand, uint8_t *buffer) {
     retval=sizeof(TempC);
     break;
   }
-  case ePacketCount:
+  case ePacketCount:{
     memcpy(buffer, (uint8_t *) &currentPacketCount, sizeof(currentPacketCount));
     retval = sizeof(currentPacketCount);
     break;
-  case eVoltageCurrentInput:{
-    // First command puts into "Single Cycle Mode" 
-    I2CSend(LTC2992_I2C_WRITE_ADDRESS, 2, LTC2992_CTRLA_REG, LTC2992_MODE_SINGLE_CYCLE);
-    uint32_t read_i2c=I2CReceive(LTC2992_I2C_READ_ADDRESS, LTC2992_GPIO1_MSB_REG);
-    memcpy(buffer, (uint8_t *) &read_i2c, 2);
-    retval=4;
-    break;}
+  }
+  case ePower1:{
+    memcpy(buffer,power1,sizeof(power1));
+    retval=sizeof(power1);
+    break;
+  }
+  case ePower2:{
+    memcpy(buffer,power2,sizeof(power2));
+    retval=sizeof(power2);
+    break;
+  }
+  case eSense1:{
+    memcpy(buffer,sense1,sizeof(sense1));
+    retval=sizeof(sense1);
+    break;
+  }
+  case eSense2:{
+    memcpy(buffer,sense2,sizeof(sense2));
+    retval=sizeof(sense2);
+    break;
+  }
+  case eCurrent1:{
+    memcpy(buffer,current1,sizeof(current1));
+    retval=sizeof(current1);
+    break;
+  }
+  case eCurrent2:{
+    memcpy(buffer,current2,sizeof(current2));
+    retval=sizeof(current2);
+    break;
+  }
+  case eGPIO1:{
+    memcpy(buffer,gpio1,sizeof(gpio1));
+    retval=sizeof(gpio1);
+    break;
+  }
+  case eGPIO2:{
+    memcpy(buffer,gpio2,sizeof(gpio2));
+    retval=sizeof(gpio2);
+    break;
+  }
+  case eGPIO3:{
+    memcpy(buffer,gpio3,sizeof(gpio3));
+    retval=sizeof(gpio3);
+    break;
+  }
+  case eGPIO4:{
+    memcpy(buffer,gpio4,sizeof(gpio4));
+    retval=sizeof(gpio4);
+    break;
+  }
   case eISR: {
     uint32_t TempRead=analogRead(TEMPSENSOR);
     float TempC = (float)(1475 - ((2475 * TempRead) / 4096)) / 10;
